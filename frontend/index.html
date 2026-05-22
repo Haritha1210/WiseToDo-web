@@ -13,8 +13,89 @@
 </head>
 <body>
     <div id="app">
+        <!-- Landing Page -->
+        <div id="landing-view" class="view active">
+            <header class="landing-topbar">
+                <h1 class="landing-logo">WiseToDo</h1>
+                <div class="landing-auth-btns">
+                    <button class="landing-btn landing-btn-outline" id="landing-signin">Sign In</button>
+                    <button class="landing-btn landing-btn-solid" id="landing-signup">Sign Up</button>
+                </div>
+            </header>
+
+            <div class="landing-content">
+                <section class="landing-hero">
+                    <div class="hero-text">
+                        <h1>Your All-in-One<br><span class="hero-highlight">Productivity Hub</span></h1>
+                        <p>Track habits, manage tasks, remember important dates, and stay on top of your daily goals — all in one beautiful dashboard.</p>
+                        <button class="landing-cta" id="landing-cta-btn">Get Started Free <i class="fa-solid fa-arrow-right"></i></button>
+                    </div>
+                    <div class="hero-visual">
+                        <div class="hero-shape hero-shape-1"></div>
+                        <div class="hero-shape hero-shape-2"></div>
+                        <div class="hero-shape hero-shape-3"></div>
+                        <div class="hero-icon hero-icon-1"><i class="fa-solid fa-border-all"></i></div>
+                        <div class="hero-icon hero-icon-2"><i class="fa-solid fa-check-square"></i></div>
+                        <div class="hero-icon hero-icon-3"><i class="fa-solid fa-bell"></i></div>
+                        <div class="hero-icon hero-icon-4"><i class="fa-solid fa-calendar-star"></i></div>
+                        <div class="hero-icon hero-icon-5"><i class="fa-solid fa-list-check"></i></div>
+                        <div class="hero-icon hero-icon-6"><i class="fa-solid fa-user"></i></div>
+                    </div>
+                </section>
+
+                <section class="landing-features">
+                    <h2 class="features-title">Everything You Need</h2>
+                    <p class="features-subtitle">Each section is designed to help you stay organized and productive.</p>
+                    <div class="features-grid">
+                        <div class="feature-card">
+                            <img src="images/dashboard_intro_1779357881029.png" alt="Dashboard">
+                            <div class="feature-info">
+                                <h3><i class="fa-solid fa-border-all"></i> Dashboard</h3>
+                                <p>Your command center. View task status charts, AI-recommended habits, and motivational sticky notes at a glance.</p>
+                            </div>
+                        </div>
+                        <div class="feature-card">
+                            <img src="images/habits_intro_1779357915752.png" alt="Habits">
+                            <div class="feature-info">
+                                <h3><i class="fa-solid fa-check-square"></i> My Tasks</h3>
+                                <p>Build and track daily habits. Mark them started or completed and watch your streak grow day by day.</p>
+                            </div>
+                        </div>
+                        <div class="feature-card">
+                            <img src="images/remember_intro_1779357944290.png" alt="Remember Tasks">
+                            <div class="feature-info">
+                                <h3><i class="fa-solid fa-bell"></i> Remember Tasks</h3>
+                                <p>Set deadline-driven tasks so you never miss an important due date again.</p>
+                            </div>
+                        </div>
+                        <div class="feature-card">
+                            <img src="images/important_intro_1779358073111.png" alt="Important Days">
+                            <div class="feature-info">
+                                <h3><i class="fa-solid fa-calendar-star"></i> Important Days</h3>
+                                <p>Pin birthdays, anniversaries, and events to the interactive calendar for quick reference.</p>
+                            </div>
+                        </div>
+                        <div class="feature-card">
+                            <img src="images/todo_intro_1779358086089.png" alt="Todo List">
+                            <div class="feature-info">
+                                <h3><i class="fa-solid fa-list-check"></i> TODO List</h3>
+                                <p>A focused list limited to 10 high-priority tasks. Export your checklist as a PDF when you're done.</p>
+                            </div>
+                        </div>
+                        <div class="feature-card">
+                            <img src="images/profile_intro_1779358099999.png" alt="Profile">
+                            <div class="feature-info">
+                                <h3><i class="fa-solid fa-user"></i> Profile</h3>
+                                <p>View your total habit streaks, overall performance score, and manage your account details.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+
         <!-- Auth View -->
-        <div id="auth-view" class="view active">
+        <div id="auth-view" class="view">
             <div class="auth-container">
                 <div class="auth-box">
                     <h2 id="auth-title">Welcome Back</h2>

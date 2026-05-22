@@ -1,6 +1,6 @@
 const API_URL = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
     ? 'http://localhost:3001/api'
-    : 'https://wisetodo-web.onrender.com/api';
+    : '/api';
 let authToken = localStorage.getItem('token');
 let currentUsername = localStorage.getItem('username');
 const defaultAvatar = 'https://ui-avatars.com/api/?name=User&background=fff&color=FA8072';
@@ -76,6 +76,7 @@ function getRandomQuotes(count) {
 }
 
 // DOM Elements
+const landingView = document.getElementById('landing-view');
 const authView = document.getElementById('auth-view');
 const mainView = document.getElementById('main-view');
 const authForm = document.getElementById('auth-form');
@@ -87,6 +88,11 @@ const sidebarEmail = document.getElementById('sidebar-email');
 const userAvatar = document.getElementById('user-avatar');
 const welcomeName = document.getElementById('welcome-name');
 const currentDateEl = document.getElementById('current-date');
+
+// Landing DOM Elements
+const landingSignIn = document.getElementById('landing-signin');
+const landingSignUp = document.getElementById('landing-signup');
+const landingCta = document.getElementById('landing-cta-btn');
 
 // Profile DOM Elements
 const profileNameInput = document.getElementById('profile-name');
@@ -103,9 +109,31 @@ document.addEventListener('DOMContentLoaded', () => {
     currentDateEl.textContent = new Date().toLocaleDateString('en-GB', options);
 
     if (authToken) showMainApp();
-    else showAuthView();
+    else showLanding();
     
     setupNavigation();
+});
+
+// --- LANDING ---
+function showLanding() {
+    authView.classList.remove('active');
+    mainView.classList.remove('active');
+    landingView.classList.add('active');
+}
+
+landingSignIn.addEventListener('click', () => {
+    setAuthMode(true);
+    showAuthView();
+});
+
+landingSignUp.addEventListener('click', () => {
+    setAuthMode(false);
+    showAuthView();
+});
+
+landingCta.addEventListener('click', () => {
+    setAuthMode(false);
+    showAuthView();
 });
 
 // --- AUTHENTICATION ---
@@ -203,15 +231,17 @@ document.getElementById('logout-btn').addEventListener('click', () => {
     localStorage.removeItem('token');
     localStorage.removeItem('username');
     authToken = null;
-    showAuthView();
+    showLanding();
 });
 
 function showAuthView() {
+    landingView.classList.remove('active');
     mainView.classList.remove('active');
     authView.classList.add('active');
 }
 
 function showMainApp() {
+    landingView.classList.remove('active');
     authView.classList.remove('active');
     mainView.classList.add('active');
     loadAllData();
@@ -246,9 +276,23 @@ async function fetchResource(type) {
 
 async function loadAllData() {
     try {
-        // Fetch profile
-        const profileRes = await fetch(`${API_URL}/profile`, { headers: { 'Authorization': authToken } });
+        const [profileRes, dashboardTasks, habits, rememberTasks, importantDays, todoList, stickyNotes] = await Promise.all([
+            fetch(`${API_URL}/profile`, { headers: { 'Authorization': authToken } }),
+            fetchResource('dashboardTasks'),
+            fetchResource('habits'),
+            fetchResource('rememberTasks'),
+            fetchResource('importantDays'),
+            fetchResource('todoList'),
+            fetchResource('stickyNotes')
+        ]);
+        
         state.profile = await profileRes.json();
+        state.dashboardTasks = dashboardTasks;
+        state.habits = habits;
+        state.rememberTasks = rememberTasks;
+        state.importantDays = importantDays;
+        state.todoList = todoList;
+        state.stickyNotes = stickyNotes;
         
         // Update sidebar
         const avatarUrl = state.profile.avatar || defaultAvatar;
@@ -257,13 +301,6 @@ async function loadAllData() {
         sidebarEmail.textContent = state.profile.email;
         userAvatar.src = avatarUrl;
         profileAvatarEl.src = avatarUrl;
-
-        state.dashboardTasks = await fetchResource('dashboardTasks');
-        state.habits = await fetchResource('habits');
-        state.rememberTasks = await fetchResource('rememberTasks');
-        state.importantDays = await fetchResource('importantDays');
-        state.todoList = await fetchResource('todoList');
-        state.stickyNotes = await fetchResource('stickyNotes');
         
         renderDashboard();
         renderHabits();

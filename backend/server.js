@@ -11,11 +11,19 @@ const DATA_FILE = path.join(__dirname, 'data.json');
 app.use(cors());
 app.use(express.json());
 
-// Helper to read DB
+let dbCache = null;
+let dbCacheTime = 0;
+const CACHE_TTL = 2000;
+
+// Helper to read DB (cached)
 const readDB = () => {
+    const now = Date.now();
+    if (dbCache && now - dbCacheTime < CACHE_TTL) return dbCache;
     try {
         const data = fs.readFileSync(DATA_FILE, 'utf8');
-        return JSON.parse(data);
+        dbCache = JSON.parse(data);
+        dbCacheTime = now;
+        return dbCache;
     } catch (err) {
         return { users: [], userData: {} };
     }
@@ -24,6 +32,8 @@ const readDB = () => {
 // Helper to write DB
 const writeDB = (db) => {
     fs.writeFileSync(DATA_FILE, JSON.stringify(db, null, 2));
+    dbCache = db;
+    dbCacheTime = Date.now();
 };
 
 const getTodayDate = () => new Date().toISOString().slice(0, 10);
