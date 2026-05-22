@@ -173,15 +173,25 @@ authForm.addEventListener('submit', async (e) => {
         return showAuthError('Password must be at least 8 characters and include uppercase, lowercase, and a number.');
     }
 
+    const btn = document.getElementById('auth-submit-btn');
+    const origText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Please wait...';
+
     const endpoint = isLoginMode ? '/login' : '/register';
     const payload = isLoginMode ? { email, password } : { username, email, password };
     
     try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 60000);
+
         const res = await fetch(`${API_URL}${endpoint}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(payload),
+            signal: controller.signal
         });
+        clearTimeout(timeout);
         
         const data = await res.json();
         if (res.ok) {
@@ -194,14 +204,21 @@ authForm.addEventListener('submit', async (e) => {
             } else {
                 showAuthError('Account created successfully! Please sign in with your credentials.');
                 setAuthMode(true);
-                authForm.reset();
-                document.getElementById('auth-email').value = '';
+                document.getElementById('auth-password').value = '';
+                document.getElementById('auth-username').value = '';
             }
         } else {
-            showAuthError(data.error || 'Unable to authenticate. Please try again.');
+            showAuthError(data.error || 'Invalid credentials. Please check and try again.');
         }
     } catch (err) {
-        showAuthError('Server error. Backend may still be starting or unreachable. Please wait a moment and refresh.');
+        if (err.name === 'AbortError') {
+            showAuthError('Request timed out. The backend may be starting up. Please try again.');
+        } else {
+            showAuthError('Cannot reach the server. Please check your connection and try again.');
+        }
+    } finally {
+        btn.disabled = false;
+        btn.textContent = origText;
     }
 });
 
@@ -270,14 +287,23 @@ function setupNavigation() {
 
 // --- API HELPERS ---
 async function fetchResource(type) {
-    const res = await fetch(`${API_URL}/data/${type}`, { headers: { 'Authorization': authToken } });
-    return await res.json();
+    try {
+        const res = await fetch(`${API_URL}/data/${type}`, { headers: { 'Authorization': authToken } });
+        if (!res.ok) return [];
+        return await res.json();
+    } catch {
+        return [];
+    }
 }
 
 async function loadAllData() {
     try {
-        const [profileRes, dashboardTasks, habits, rememberTasks, importantDays, todoList, stickyNotes] = await Promise.all([
-            fetch(`${API_URL}/profile`, { headers: { 'Authorization': authToken } }),
+        const profileRes = await fetch(`${API_URL}/profile`, { headers: { 'Authorization': authToken } });
+        if (profileRes.ok) {
+            state.profile = await profileRes.json();
+        }
+        
+        const results = await Promise.allSettled([
             fetchResource('dashboardTasks'),
             fetchResource('habits'),
             fetchResource('rememberTasks'),
@@ -286,19 +312,18 @@ async function loadAllData() {
             fetchResource('stickyNotes')
         ]);
         
-        state.profile = await profileRes.json();
-        state.dashboardTasks = dashboardTasks;
-        state.habits = habits;
-        state.rememberTasks = rememberTasks;
-        state.importantDays = importantDays;
-        state.todoList = todoList;
-        state.stickyNotes = stickyNotes;
+        state.dashboardTasks = results[0].value || [];
+        state.habits = results[1].value || [];
+        state.rememberTasks = results[2].value || [];
+        state.importantDays = results[3].value || [];
+        state.todoList = results[4].value || [];
+        state.stickyNotes = results[5].value || [];
         
         // Update sidebar
         const avatarUrl = state.profile.avatar || defaultAvatar;
-        sidebarUsername.textContent = state.profile.username;
-        welcomeName.textContent = state.profile.username;
-        sidebarEmail.textContent = state.profile.email;
+        sidebarUsername.textContent = state.profile.username || 'User';
+        welcomeName.textContent = state.profile.username || 'User';
+        sidebarEmail.textContent = state.profile.email || '';
         userAvatar.src = avatarUrl;
         profileAvatarEl.src = avatarUrl;
         
