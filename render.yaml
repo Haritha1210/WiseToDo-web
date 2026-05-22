@@ -2,6 +2,5 @@ services:
   - type: web
     name: wisetodo-web
     env: node
-    rootDir: backend
     buildCommand: npm install
-    startCommand: node server.js
+    startCommand: npm start
