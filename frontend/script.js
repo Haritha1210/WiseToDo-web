@@ -108,11 +108,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const options = { weekday: 'long', year: 'numeric', month: 'numeric', day: 'numeric' };
     currentDateEl.textContent = new Date().toLocaleDateString('en-GB', options);
 
+    // Warm up the backend while user reads the landing page
+    warmUpBackend();
+
     if (authToken) showMainApp();
     else showLanding();
     
     setupNavigation();
 });
+
+// Pre-warm the backend to avoid cold-start delay on sign in
+function warmUpBackend() {
+    fetch(`${API_URL}/login`, { method: 'OPTIONS' }).catch(() => {});
+}
 
 // --- LANDING ---
 function showLanding() {
@@ -261,6 +269,7 @@ function showMainApp() {
     landingView.classList.remove('active');
     authView.classList.remove('active');
     mainView.classList.add('active');
+    document.getElementById('loading-overlay').classList.add('active');
     loadAllData();
 }
 
@@ -338,6 +347,8 @@ async function loadAllData() {
         updateProfileStats();
     } catch (err) {
         console.error(err);
+    } finally {
+        document.getElementById('loading-overlay').classList.remove('active');
     }
 }
 

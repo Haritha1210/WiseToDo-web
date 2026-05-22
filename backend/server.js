@@ -13,7 +13,7 @@ app.use(express.json());
 
 let dbCache = null;
 let dbCacheTime = 0;
-const CACHE_TTL = 2000;
+const CACHE_TTL = 5000;
 
 // Helper to read DB (cached)
 const readDB = () => {

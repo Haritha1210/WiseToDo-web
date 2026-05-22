@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Premium To-Do Dashboard</title>
     <meta name="description" content="Responsive To-Do Dashboard with habits, deadlines, important days, and profile management.">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://wisetodo-web-1.onrender.com">
+    <link rel="dns-prefetch" href="https://wisetodo-web-1.onrender.com">
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sunshine+Market&family=Playfair+Display:wght@700&family=Bebas+Neue&family=Lobster&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -48,42 +53,42 @@
                     <p class="features-subtitle">Each section is designed to help you stay organized and productive.</p>
                     <div class="features-grid">
                         <div class="feature-card">
-                            <img src="images/dashboard_intro_1779357881029.png" alt="Dashboard">
+                            <img loading="lazy" src="images/dashboard_intro_1779357881029.png" alt="Dashboard" width="80" height="80">
                             <div class="feature-info">
                                 <h3><i class="fa-solid fa-border-all"></i> Dashboard</h3>
                                 <p>Your command center. View task status charts, AI-recommended habits, and motivational sticky notes at a glance.</p>
                             </div>
                         </div>
                         <div class="feature-card">
-                            <img src="images/habits_intro_1779357915752.png" alt="Habits">
+                            <img loading="lazy" src="images/habits_intro_1779357915752.png" alt="Habits" width="80" height="80">
                             <div class="feature-info">
                                 <h3><i class="fa-solid fa-check-square"></i> My Tasks</h3>
                                 <p>Build and track daily habits. Mark them started or completed and watch your streak grow day by day.</p>
                             </div>
                         </div>
                         <div class="feature-card">
-                            <img src="images/remember_intro_1779357944290.png" alt="Remember Tasks">
+                            <img loading="lazy" src="images/remember_intro_1779357944290.png" alt="Remember Tasks" width="80" height="80">
                             <div class="feature-info">
                                 <h3><i class="fa-solid fa-bell"></i> Remember Tasks</h3>
                                 <p>Set deadline-driven tasks so you never miss an important due date again.</p>
                             </div>
                         </div>
                         <div class="feature-card">
-                            <img src="images/important_intro_1779358073111.png" alt="Important Days">
+                            <img loading="lazy" src="images/important_intro_1779358073111.png" alt="Important Days" width="80" height="80">
                             <div class="feature-info">
                                 <h3><i class="fa-solid fa-calendar-star"></i> Important Days</h3>
                                 <p>Pin birthdays, anniversaries, and events to the interactive calendar for quick reference.</p>
                             </div>
                         </div>
                         <div class="feature-card">
-                            <img src="images/todo_intro_1779358086089.png" alt="Todo List">
+                            <img loading="lazy" src="images/todo_intro_1779358086089.png" alt="Todo List" width="80" height="80">
                             <div class="feature-info">
                                 <h3><i class="fa-solid fa-list-check"></i> TODO List</h3>
                                 <p>A focused list limited to 10 high-priority tasks. Export your checklist as a PDF when you're done.</p>
                             </div>
                         </div>
                         <div class="feature-card">
-                            <img src="images/profile_intro_1779358099999.png" alt="Profile">
+                            <img loading="lazy" src="images/profile_intro_1779358099999.png" alt="Profile" width="80" height="80">
                             <div class="feature-info">
                                 <h3><i class="fa-solid fa-user"></i> Profile</h3>
                                 <p>View your total habit streaks, overall performance score, and manage your account details.</p>
@@ -158,6 +163,10 @@
 
             <!-- Main Content Area -->
             <main class="content">
+                <div id="loading-overlay" class="loading-overlay">
+                    <div class="loading-spinner"></div>
+                    <p>Loading your dashboard...</p>
+                </div>
                 <header class="topbar">
                     <div class="search-bar">
                         <i class="fa-solid fa-search"></i>
