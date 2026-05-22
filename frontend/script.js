@@ -210,10 +210,10 @@ authForm.addEventListener('submit', async (e) => {
                 localStorage.setItem('username', currentUsername);
                 showMainApp();
             } else {
-                showAuthError('Account created successfully! Please sign in with your credentials.');
+                document.getElementById('auth-form').reset();
+                document.getElementById('auth-email').value = email;
+                showAuthSuccess('Account created successfully! Please sign in with your credentials.');
                 setAuthMode(true);
-                document.getElementById('auth-password').value = '';
-                document.getElementById('auth-username').value = '';
             }
         } else {
             showAuthError(data.error || 'Invalid credentials. Please check and try again.');
@@ -230,14 +230,25 @@ authForm.addEventListener('submit', async (e) => {
     }
 });
 
+const authSuccessEl = document.getElementById('auth-success');
+
 function showAuthError(message) {
+    authSuccessEl.classList.remove('active');
     authErrorEl.textContent = message;
     authErrorEl.classList.add('active');
+}
+
+function showAuthSuccess(message) {
+    authErrorEl.classList.remove('active');
+    authSuccessEl.textContent = message;
+    authSuccessEl.classList.add('active');
 }
 
 function clearAuthError() {
     authErrorEl.textContent = '';
     authErrorEl.classList.remove('active');
+    authSuccessEl.textContent = '';
+    authSuccessEl.classList.remove('active');
 }
 
 const passwordInput = document.getElementById('auth-password');
@@ -308,7 +319,15 @@ async function fetchResource(type) {
 async function loadAllData() {
     try {
         const profileRes = await fetch(`${API_URL}/profile`, { headers: { 'Authorization': authToken } });
-        if (profileRes.ok) {
+        if (!profileRes.ok) {
+            if (profileRes.status === 401) {
+                localStorage.removeItem('token');
+                localStorage.removeItem('username');
+                authToken = null;
+                showLanding();
+                return;
+            }
+        } else {
             state.profile = await profileRes.json();
         }
         

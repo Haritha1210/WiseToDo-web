@@ -436,6 +436,22 @@ body {
     display: block;
 }
 
+.auth-success {
+    display: none;
+    margin: 0 auto 1rem;
+    padding: 0.9rem 1rem;
+    background: rgba(34, 197, 94, 0.12);
+    color: #15803d;
+    border: 1px solid rgba(34, 197, 94, 0.35);
+    border-radius: 14px;
+    font-size: 0.95rem;
+    text-align: left;
+}
+
+.auth-success.active {
+    display: block;
+}
+
 .btn-secondary {
     background: rgba(255,255,255,0.85);
     color: var(--text-primary);

@@ -3,9 +3,12 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const JWT_SECRET = process.env.JWT_SECRET || 'wisesecret_jwt_2026_change_in_prod';
 const DATA_FILE = path.join(__dirname, 'data.json');
 
 app.use(cors());
@@ -60,62 +63,128 @@ const updateDailyHistory = (item) => {
 
 // --- AUTHENTICATION ---
 
-app.post('/api/register', (req, res) => {
-    const { username, email, password } = req.body;
-    if (!username || !email || !password) {
-        return res.status(400).json({ error: 'All fields are required' });
-    }
-    
-    let db = readDB();
-    if (db.users.find(u => u.email === email)) {
-        return res.status(400).json({ error: 'User already exists' });
-    }
+const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+const validatePassword = (pw) => pw.length >= 8 && /[A-Z]/.test(pw) && /[a-z]/.test(pw) && /\d/.test(pw);
 
-    const newUser = {
-        id: crypto.randomUUID(),
-        username,
-        email,
-        password, // Stored in plain text for simplicity in this local project
-        avatar: "https://ui-avatars.com/api/?name=" + encodeURIComponent(username) + "&background=fff&color=FA8072"
-    };
+app.post('/api/register', async (req, res) => {
+    try {
+        const { username, email, password } = req.body;
 
-    db.users.push(newUser);
-    db.userData[newUser.id] = {
-        dashboardTasks: [],
-        habits: [],
-        rememberTasks: [],
-        importantDays: [],
-        todoList: [],
-        stickyNotes: []
-    };
-    
-    writeDB(db);
-    res.json({ token: newUser.id, username: newUser.username });
+        // Input validation
+        if (!username || !email || !password) {
+            return res.status(400).json({ error: 'All fields are required' });
+        }
+        if (username.length < 2 || username.length > 30) {
+            return res.status(400).json({ error: 'Username must be 2-30 characters' });
+        }
+        if (!validateEmail(email)) {
+            return res.status(400).json({ error: 'Please enter a valid email address' });
+        }
+        if (!validatePassword(password)) {
+            return res.status(400).json({ error: 'Password must be at least 8 characters with uppercase, lowercase, and a number' });
+        }
+
+        let db = readDB();
+        if (db.users.find(u => u.email.toLowerCase() === email.toLowerCase())) {
+            return res.status(409).json({ error: 'An account with this email already exists' });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 12);
+        const newUser = {
+            id: crypto.randomUUID(),
+            username,
+            email: email.toLowerCase(),
+            password: hashedPassword,
+            avatar: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(username) + '&background=fff&color=FA8072',
+            createdAt: new Date().toISOString()
+        };
+
+        db.users.push(newUser);
+        db.userData[newUser.id] = {
+            dashboardTasks: [],
+            habits: [],
+            rememberTasks: [],
+            importantDays: [],
+            todoList: [],
+            stickyNotes: []
+        };
+
+        writeDB(db);
+        res.status(201).json({ message: 'Account created successfully' });
+    } catch (err) {
+        console.error('Register error:', err);
+        res.status(500).json({ error: 'Server error. Please try again.' });
+    }
 });
 
-app.post('/api/login', (req, res) => {
-    const { email, password } = req.body;
-    let db = readDB();
-    const user = db.users.find(u => u.email === email && u.password === password);
-    
-    if (!user) {
-        return res.status(401).json({ error: 'Invalid credentials' });
+app.post('/api/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        if (!email || !password) {
+            return res.status(400).json({ error: 'Email and password are required' });
+        }
+
+        let db = readDB();
+        const user = db.users.find(u => u.email.toLowerCase() === email.toLowerCase());
+
+        if (!user) {
+            return res.status(401).json({ error: 'Invalid email or password' });
+        }
+
+        let passwordValid = false;
+
+        // Check if password is bcrypt-hashed
+        if (user.password && user.password.startsWith('$2')) {
+            passwordValid = await bcrypt.compare(password, user.password);
+        } else {
+            // Legacy plaintext fallback + migration
+            passwordValid = user.password === password;
+            if (passwordValid) {
+                const hashed = await bcrypt.hash(password, 12);
+                user.password = hashed;
+                const idx = db.users.findIndex(u => u.id === user.id);
+                if (idx !== -1) db.users[idx].password = hashed;
+                writeDB(db);
+            }
+        }
+
+        if (!passwordValid) {
+            return res.status(401).json({ error: 'Invalid email or password' });
+        }
+
+        const token = jwt.sign(
+            { userId: user.id, email: user.email },
+            JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+
+        res.json({
+            token,
+            username: user.username,
+            email: user.email,
+            avatar: user.avatar
+        });
+    } catch (err) {
+        console.error('Login error:', err);
+        res.status(500).json({ error: 'Server error. Please try again.' });
     }
-    
-    res.json({ token: user.id, username: user.username, email: user.email, avatar: user.avatar });
 });
 
-// Middleware to check authentication
+// Middleware to check authentication via JWT
 const authMiddleware = (req, res, next) => {
-    const token = req.headers.authorization;
-    if (!token) return res.status(401).json({ error: 'Unauthorized' });
-    
-    let db = readDB();
-    const user = db.users.find(u => u.id === token);
-    if (!user) return res.status(401).json({ error: 'Invalid token' });
-    
-    req.userId = user.id;
-    next();
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(401).json({ error: 'No authorization token provided' });
+    }
+
+    try {
+        const decoded = jwt.verify(authHeader, JWT_SECRET);
+        req.userId = decoded.userId;
+        next();
+    } catch (err) {
+        return res.status(401).json({ error: 'Invalid or expired token' });
+    }
 };
 
 // Update Profile
